@@ -6,6 +6,8 @@
 
 `stencil-constructible-style` is a decorator for Stencil components that gives you the ability to add dynamic styles as constructible stylesheets, with a fallback for non-supported browsers.
 
+_* Requires @stencil/core@1.0.0-alpha.15 or later_
+
 ## Why? Don't Stencil do this already?
 
 Yes, for your `.css`-files they do. But what if your style depends on some variables? Then you end up having to write `<style>` tags in your `render` function.
