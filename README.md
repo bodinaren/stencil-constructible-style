@@ -4,7 +4,7 @@
 
 ## What is it?
 
-`stencil-constructible-style` gives you the ability to add dynamic styles as constructible stylesheets, with a fallback for non-supported browsers.
+`stencil-constructible-style` is a decorator for Stencil components that gives you the ability to add dynamic styles as constructible stylesheets, with a fallback for non-supported browsers.
 
 ## Why? Don't Stencil do this already?
 
