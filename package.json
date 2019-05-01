@@ -1,7 +1,7 @@
 {
-  "name": "stencil-constructable-style",
+  "name": "stencil-constructible-style",
   "version": "1.0.0",
-  "description": "A decorator for creating constructable stylesheets on the fly.",
+  "description": "A Stencil decorator for creating constructible stylesheets on the fly.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -12,25 +12,26 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^3.3.3",
-    "@stencil/core": "^1.0.0-alpha.13"
+    "@stencil/core": "^1.0.0-alpha.15",
+    "typescript": "^3.3.3"
   },
   "peerDependencies": {
-    "@stencil/core": "^1.0.0-alpha.13"
+    "@stencil/core": "^1.0.0-alpha.15"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bodinaren/stencil-constructable-style.git"
+    "url": "git+https://github.com/bodinaren/stencil-constructible-style.git"
   },
   "author": "Marcus Bodin",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bodinaren/stencil-constructable-style/issues"
+    "url": "https://github.com/bodinaren/stencil-constructible-style/issues"
   },
-  "homepage": "https://github.com/bodinaren/stencil-constructable-style",
+  "homepage": "https://github.com/bodinaren/stencil-constructible-style",
   "keywords": [
     "Stencil",
     "Decorator",
+    "Constructible",
     "Constructable",
     "Stylesheets"
   ]
