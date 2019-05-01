@@ -1,35 +1,53 @@
 import { h, Host, getElement } from "@stencil/core";
-import { VNode } from "@stencil/core/dist/declarations";
+import { VNode, ComponentInstance } from "@stencil/core/dist/declarations";
 
 const supportsConstructibleStylesheets = (() => {
   try { return !!new CSSStyleSheet(); }
   catch (e) { return false; }
 })();
 
-export function ConstructibleStyle(options: ConstructibleStyleOptions = {}) {
-  return (proto: any, prop: any) => {
+declare type ConstructibleStyleDecorator = (target: ComponentInstance, propertyKey: string) => void
 
-    if (!options.cacheKeyProperty) {
-      options.cacheKeyProperty = prop;
+/**
+ * Dynamically create a constructible stylesheet which is applied to the component.
+ * The stylesheet is then cached for future instances of the component.
+ * @usage
+As a string:
+```
+@ConstructableStyle() style = `.bg { background: url('assets/${ this.mode }/bg.png'); }`;
+```
+As a function:
+```
+@ConstructableStyle() style = () => `.bg { background: url('assets/${ this.mode }/bg.png'); }`;
+```
+ */
+export function ConstructibleStyle(
+  opts: ConstructibleStyleOptions = {}
+): ConstructibleStyleDecorator {
+  
+  return (target: ComponentInstance, propertyKey: string) => {
+
+    if (!opts.cacheKeyProperty) {
+      opts.cacheKeyProperty = propertyKey;
     }
 
-    const { componentWillLoad, render } = proto;
+    const { componentWillLoad, render } = target;
 
     if (supportsConstructibleStylesheets) {
-      proto.componentWillLoad = function() {
+      target.componentWillLoad = function() {
         const willLoadResult = componentWillLoad && componentWillLoad.call(this);
 
         const host = getElement(this);
         const root = (host.shadowRoot || host) as any;
-        root.adoptedStyleSheets = [...root.adoptedStyleSheets || [], getOrCreateStylesheet(this, proto, prop, options)];
+        root.adoptedStyleSheets = [...root.adoptedStyleSheets || [], getOrCreateStylesheet(this, target, propertyKey, opts)];
   
         return willLoadResult;
       }
 
     } else {
-      proto.render = function() {
+      target.render = function() {
         let renderedNode: VNode = render.call(this);
-        const style = createVDomStyleTag(this[prop]);
+        const style = createVDomStyleTag(this[propertyKey]);
 
         if (typeof renderedNode === "string" || typeof renderedNode.$tag$ !== "object") {
           // render did not return a Host, create one to ensure $children$.push can insert the style as expected.
@@ -43,19 +61,28 @@ export function ConstructibleStyle(options: ConstructibleStyleOptions = {}) {
   };
 }
 
-function getOrCreateStylesheet(component: any, proto: any, prop: any, options: ConstructibleStyleOptions): CSSStyleSheet {
-  if (!proto.__constructableStylesheets) {
-    proto.__constructableStylesheets = {};
+function getOrCreateStylesheet(
+  instance: ComponentInstance,
+  target: ComponentInstance,
+  prop: string,
+  opts: ConstructibleStyleOptions,
+): CSSStyleSheet {
+
+  if (!target.__constructableStylesheets) {
+    target.__constructableStylesheets = {};
   }
 
-  let key = component[options.cacheKeyProperty];
+  let key = instance[opts.cacheKeyProperty];
 
-  if (!proto.__constructableStylesheets[key]) {
-    proto.__constructableStylesheets[key] = new CSSStyleSheet()
-    proto.__constructableStylesheets[key].replace(component[prop]);
+  if (!target.__constructableStylesheets[key]) {
+    let style = instance[prop];
+    if (typeof style === "function") style = style();
+
+    target.__constructableStylesheets[key] = new CSSStyleSheet();
+    target.__constructableStylesheets[key].replace(style);
   }
 
-  return proto.__constructableStylesheets[key];
+  return target.__constructableStylesheets[key];
 }
 
 function createVDomStyleTag(cssText: string): VNode {
@@ -72,7 +99,8 @@ function createVDomStyleTag(cssText: string): VNode {
 
 export interface ConstructibleStyleOptions {
   /**
-   * Set this in case an instance of a component could produce different styles. This will ensure that you get new styles for each mode.
+   * Set this in case an instance of a component could produce different styles based on variables.
+   * This will ensure that you get new styles for each mode.
    * @example
 ```
 @Prop() mode: string;

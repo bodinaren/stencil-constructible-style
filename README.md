@@ -25,6 +25,14 @@ export class MyComponent {
 }
 ```
 
+You can also set the `ConstructibleStyle` to a function in case you want to avoid running it for every instance of the component.
+The above would be:
+```ts
+@ConstructibleStyle() styles = () => `
+  .classIcon { background: url(${ getAssetPath("../assets/class-icon.png") }); }
+`;
+```
+
 ### Caching
 
 The stylesheet, once constructed, is cached statically per component and therefore won't be recreated when new instances of the component are created. This could be a problem if you have variables that affects that stylesheet. That's where the `cacheKeyProperty` option comes in.
