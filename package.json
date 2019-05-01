@@ -1,7 +1,7 @@
 {
   "name": "stencil-constructible-style",
-  "version": "1.0.0",
-  "description": "A Stencil decorator for creating constructible stylesheets on the fly.",
+  "version": "1.1.0",
+  "description": "A Stencil decorator for dynamically creating constructible stylesheets.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
