@@ -35,26 +35,28 @@ export function ConstructibleStyle(
 
     if (supportsConstructibleStylesheets) {
       target.componentWillLoad = function() {
+        const cssText = (typeof this[propertyKey] === "function" ? this[propertyKey]() : this[propertyKey]);
         const willLoadResult = componentWillLoad && componentWillLoad.call(this);
 
         const host = getElement(this);
         const root = (host.shadowRoot || host) as any;
-        root.adoptedStyleSheets = [...root.adoptedStyleSheets || [], getOrCreateStylesheet(this, target, propertyKey, opts)];
+        root.adoptedStyleSheets = [...root.adoptedStyleSheets || [], getOrCreateStylesheet(this, target, cssText, opts)];
   
         return willLoadResult;
       }
 
     } else {
       target.render = function() {
+        const cssText = (typeof this[propertyKey] === "function" ? this[propertyKey]() : this[propertyKey]);
         let renderedNode: VNode = render.call(this);
-        const style = createVDomStyleTag(this[propertyKey]);
+        const style = <style type="text/css">{ cssText }</style>;
 
-        if (typeof renderedNode === "string" || typeof renderedNode.$tag$ !== "object") {
-          // render did not return a Host, create one to ensure $children$.push can insert the style as expected.
+        if (isHost(renderedNode)) {
+          (getHostChildren(renderedNode) || []).push(style);
+        } else {
           renderedNode = <Host>{ renderedNode }</Host>;
         }
-        renderedNode.$children$.push(style);
-        
+
         return renderedNode;
       }
     }
@@ -64,7 +66,7 @@ export function ConstructibleStyle(
 function getOrCreateStylesheet(
   instance: ComponentInstance,
   target: ComponentInstance,
-  prop: string,
+  cssText: string,
   opts: ConstructibleStyleOptions,
 ): CSSStyleSheet {
 
@@ -75,25 +77,32 @@ function getOrCreateStylesheet(
   let key = instance[opts.cacheKeyProperty];
 
   if (!target.__constructableStylesheets[key]) {
-    let style = instance[prop];
-    if (typeof style === "function") style = style();
 
     target.__constructableStylesheets[key] = new CSSStyleSheet();
-    target.__constructableStylesheets[key].replace(style);
+    target.__constructableStylesheets[key].replace(cssText);
   }
 
   return target.__constructableStylesheets[key];
 }
 
-function createVDomStyleTag(cssText: string): VNode {
-  return {
-    $tag$: "style",
-    $children$: [{
-      $text$: cssText,
-      $flags$: 0,
-    }],
-    $flags$: 0,
-    $attrs$: { type: "text/css" },
+function isHost(node): boolean {
+  for (let prop in node) {
+    if (node.hasOwnProperty(prop)) {
+      if (node[prop] === Host) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function getHostChildren(node): Array<VNode> {
+  for (let prop in node) {
+    if (node.hasOwnProperty(prop)) {
+      if (Array.isArray(node[prop])) {
+        return node[prop];
+      }
+    }
   }
 }
 
