@@ -49,18 +49,38 @@ export function ConstructibleStyle(
       target.render = function() {
         const cssText = (typeof this[propertyKey] === "function" ? this[propertyKey]() : this[propertyKey]);
         let renderedNode: VNode = render.call(this);
-        const style = <style type="text/css">{ cssText }</style>;
-
+        
         if (isHost(renderedNode)) {
-          (getHostChildren(renderedNode) || []).push(style);
+          appendStyleToHost(renderedNode, target.constructor.name, cssText);
+
         } else {
           renderedNode = <Host>{ renderedNode }</Host>;
+
+          if (!('attachShadow' in HTMLElement.prototype)) {
+            appendStyleToHost(renderedNode, target.constructor.name, cssText);
+
+          } else {
+            if (!target.__constructableStyle) {
+              let style = document.createElement("style");
+              style.setAttribute("type", "text/css");
+              style.setAttribute("constructible-style", target.constructor.name);
+              style.innerHTML = cssText;
+              target.__constructableStyle = style;
+              document.head.appendChild(style);
+            }
+          }
         }
 
         return renderedNode;
       }
     }
   };
+}
+
+function appendStyleToHost(node, targetName, cssText) {
+  (getHostChildren(node) || []).push(
+    <style type="text/css" constructible-style={ targetName }>{ cssText }</style>
+  );
 }
 
 function getOrCreateStylesheet(
@@ -70,19 +90,19 @@ function getOrCreateStylesheet(
   opts: ConstructibleStyleOptions,
 ): CSSStyleSheet {
 
-  if (!target.__constructableStylesheets) {
-    target.__constructableStylesheets = {};
+  if (!target.__constructableStyle) {
+    target.__constructableStyle = {};
   }
 
   let key = instance[opts.cacheKeyProperty];
 
-  if (!target.__constructableStylesheets[key]) {
+  if (!target.__constructableStyle[key]) {
 
-    target.__constructableStylesheets[key] = new CSSStyleSheet();
-    target.__constructableStylesheets[key].replace(cssText);
+    target.__constructableStyle[key] = new CSSStyleSheet();
+    target.__constructableStyle[key].replace(cssText);
   }
 
-  return target.__constructableStylesheets[key];
+  return target.__constructableStyle[key];
 }
 
 function isHost(node): boolean {
