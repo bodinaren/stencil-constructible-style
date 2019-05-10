@@ -49,7 +49,7 @@ export function ConstructibleStyle(
       target.render = function() {
         const cssText = (typeof this[propertyKey] === "function" ? this[propertyKey]() : this[propertyKey]);
         let renderedNode: VNode = render.call(this);
-        
+
         if (isHost(renderedNode)) {
           appendStyleToHost(renderedNode, target.constructor.name, cssText);
 
