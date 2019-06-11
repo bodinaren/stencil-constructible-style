@@ -32,6 +32,7 @@ export function ConstructibleStyle(
     }
 
     const { componentWillLoad, render } = target;
+    if (!componentWillLoad) console.warn(`ConstructibleStyle requires you to have a \`componentWillLoad\` lifecycle method in \`${ target.constructor.name }\`. Failure to add this function may cause ConstructibleStyle to fail due to StencilJS build optimizations.`);
 
     if (supportsConstructibleStylesheets) {
       target.componentWillLoad = function() {

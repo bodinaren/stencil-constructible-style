@@ -21,6 +21,9 @@ import { ConstructibleStyle } from "stencil-constructible-style";
 
 @Component({...})
 export class MyComponent {
+  // A componentWillLoad is required, even if it's empty.
+  componentWillLoad() {}
+
   @ConstructibleStyle() styles = `
     .classIcon { background: url(${ getAssetPath("../assets/class-icon.png") }); }
   `;
@@ -47,6 +50,9 @@ import { ConstructibleStyle } from "stencil-constructible-style";
 export class MyComponent {
   @Prop() myClass: string;
 
+  // A componentWillLoad is required, even if it's empty.
+  componentWillLoad() {}
+
   @ConstructibleStyle({ cacheKeyProperty: "myClass" }) styles = `
     .classIcon { background: url(${ getAssetPath(`../assets/${ this.myClass }-icon.png`) }); }
   `;
@@ -72,6 +78,10 @@ export class MyComponent {
   `;
 }
 ```
+
+### Why is `componentWillLoad` required?
+
+StencilJS does heavy optimizations. If none of your components have a `componentWillLoad` StencilJS will simply remove the code that calls that function from the output, and hence `@ConstructibleStyle` will never execute. Since the decorator has no knowledge about other components however, a warning will be issued to the console if a component that uses `@ConstructibleStyle` does not have a `componentWillLoad`.
 
 ## What about browsers that don't suppot Constructible Stylesheets?
 
