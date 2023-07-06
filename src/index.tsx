@@ -1,12 +1,11 @@
-import { h, Host, getElement } from "@stencil/core";
-import { VNode, ComponentInstance } from "@stencil/core/dist/declarations";
+import { h, Host, getElement, VNode, ComponentInterface } from "@stencil/core";
 
 const supportsConstructibleStylesheets = (() => {
   try { return !!new CSSStyleSheet(); }
   catch (e) { return false; }
 })();
 
-declare type ConstructibleStyleDecorator = (target: ComponentInstance, propertyKey: string) => void
+declare type ConstructibleStyleDecorator = (target: ComponentInterface, propertyKey: string) => void
 
 /**
  * Dynamically create a constructible stylesheet which is applied to the component.
@@ -25,7 +24,7 @@ export function ConstructibleStyle(
   opts: ConstructibleStyleOptions = {}
 ): ConstructibleStyleDecorator {
   
-  return (target: ComponentInstance, propertyKey: string) => {
+  return (target: ComponentInterface, propertyKey: string) => {
 
     if (!opts.cacheKeyProperty) {
       opts.cacheKeyProperty = propertyKey;
@@ -85,8 +84,8 @@ function appendStyleToHost(node, targetName, cssText) {
 }
 
 function getOrCreateStylesheet(
-  instance: ComponentInstance,
-  target: ComponentInstance,
+  instance: ComponentInterface,
+  target: ComponentInterface,
   cssText: string,
   opts: ConstructibleStyleOptions,
 ): CSSStyleSheet {
